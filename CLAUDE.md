@@ -6,6 +6,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Fibotin is a Mozilla Firefox WebExtension (Manifest V2) that overlays technical-analysis drawing tools on top of any web page. From a toolbar popup the user picks a tool — **Fibonacci retracement**, **trend line**, **Fibonacci arcs**, or **parallel channel** — then draws it by dragging over the page. Drawn shapes can be repositioned by dragging their handles. There is no build step, no dependencies, and no test suite; the source files are the shipped artifact.
 
+It is a **published, live extension** on Firefox Add-ons: https://addons.mozilla.org/en-US/firefox/addon/fibotin/. Shipping an update means bumping `version` in `manifest.json` and submitting the package to AMO for review/signing, so changes affect real users.
+
 ## Loading and testing
 
 There is no package manager or build tooling. Load the unpacked extension directly:

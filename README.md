@@ -8,6 +8,10 @@
   A Firefox extension for sketching technical-analysis overlays on top of any web page.
 </p>
 
+<p align="center">
+  <a href="https://addons.mozilla.org/en-US/firefox/addon/fibotin/"><b>Get it on Firefox Add-ons »</b></a>
+</p>
+
 ---
 
 Fibotin adds a toolbar button that lets you draw common charting tools — Fibonacci retracements, trend lines, Fibonacci arcs, and parallel channels — directly over whatever page you're looking at. Draw by dragging, then nudge the shape into place by dragging its handles.
@@ -24,13 +28,21 @@ Works on top of any regular web page; no account, network access, or data collec
 
 ## Installation
 
-Fibotin is not currently published on [addons.mozilla.org](https://addons.mozilla.org), so load it as a temporary add-on:
+Install the published version from Firefox Add-ons:
+
+**[Get Fibotin on addons.mozilla.org »](https://addons.mozilla.org/en-US/firefox/addon/fibotin/)**
+
+The Fibotin icon appears in the toolbar once installed.
+
+### From source (for development)
+
+To run a local copy as a temporary add-on:
 
 1. Clone or download this repository.
 2. Open Firefox and go to `about:debugging#/runtime/this-firefox`.
 3. Click **Load Temporary Add-on…** and select the `manifest.json` file from the project folder.
 
-The Fibotin icon appears in the toolbar. Temporary add-ons are removed when Firefox restarts.
+Temporary add-ons are removed when Firefox restarts.
 
 > Optional: if you have Mozilla's [`web-ext`](https://extensionworkshop.com/documentation/develop/getting-started-with-web-ext/) CLI, run `web-ext run` to launch a dev browser with the extension loaded, or `web-ext build` to package a `.zip` for signing.
 
