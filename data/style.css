@@ -11,12 +11,14 @@ border-top: 10px solid yellow;
 }
 
 #retracement{
-background-image: url('./red-dot.PNG'), url('./red-dot2.PNG'), url('./red-dot.PNG'),url('./red-dot.PNG'),url('./red-dot.PNG'), url('./red-dot2.PNG'),url('./red-dot.PNG');
+/* background-image is set inline via chrome.runtime.getURL() in content.js
+   (spec §6 fallback) because Chrome resolves url() in insertCSS-injected
+   stylesheets relative to the page origin, not the extension origin. */
 background-color: transparent;
 background-repeat: repeat-x, repeat-x, repeat-x, repeat-x, repeat-x, repeat-x, repeat-x;
 background-position: 0% 0%, 0% 24%, 0% 38%, 0% 50%, 0% 62%, 0% 76%, 0% 100%;
 position: fixed;
-z-index: 999999; 
+z-index: 999999;
 cursor: move;
 }
 

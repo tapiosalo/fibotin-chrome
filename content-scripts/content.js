@@ -31,8 +31,16 @@
 		if (drawSelection === "retracement"){
 			var tempElement = document.createElement('div');
 			tempElement.setAttribute("id", "retracement");
+			// Chrome resolves url() in insertCSS-injected stylesheets relative to
+			// the page origin, not the extension origin (spec §6 fallback).
+			// Use absolute extension URLs so the Fibonacci band images load correctly.
+			var rd  = chrome.runtime.getURL('data/red-dot.PNG');
+			var rd2 = chrome.runtime.getURL('data/red-dot2.PNG');
+			tempElement.style.backgroundImage =
+				'url("' + rd  + '"), url("' + rd2 + '"), url("' + rd  + '"),' +
+				'url("' + rd  + '"), url("' + rd  + '"), url("' + rd2 + '"), url("' + rd  + '")';
 			baseElement.appendChild(tempElement);
-			
+
 			drawObj.element = tempElement;
 		}
 		if (drawSelection === "line"){		
@@ -362,7 +370,7 @@
 	}
 
 
-  browser.runtime.onMessage.addListener((message) => {
+  chrome.runtime.onMessage.addListener((message) => {
     console.log("Message.command on content-script: "+message.command);
     drawSelection = message.command;
 		if (appIsOn) {

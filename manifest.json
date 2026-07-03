@@ -1,16 +1,28 @@
 {
-
-  "manifest_version": 2,
+  "manifest_version": 3,
   "name": "Fibotin",
   "version": "3.0",
 
   "permissions": [
-    "activeTab"
+    "activeTab",
+    "scripting"
   ],
 
-  "browser_action": {
+  "action": {
     "default_icon": "data/icon-32.png",
     "default_title": "Fibotin",
     "default_popup": "data/panel.html"
-  }
+  },
+
+  "icons": {
+    "32": "data/icon-32.png",
+    "128": "data/icon-128.png"
+  },
+
+  "web_accessible_resources": [
+    {
+      "resources": ["data/red-dot.PNG", "data/red-dot2.PNG"],
+      "matches": ["<all_urls>"]
+    }
+  ]
 }

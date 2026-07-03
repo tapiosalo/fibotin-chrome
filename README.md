@@ -34,9 +34,7 @@ Install the published version from Firefox Add-ons:
 
 The Fibotin icon appears in the toolbar once installed.
 
-### From source (for development)
-
-To run a local copy as a temporary add-on:
+### From source (Firefox — for development)
 
 1. Clone or download this repository.
 2. Open Firefox and go to `about:debugging#/runtime/this-firefox`.
@@ -45,6 +43,17 @@ To run a local copy as a temporary add-on:
 Temporary add-ons are removed when Firefox restarts.
 
 > Optional: if you have Mozilla's [`web-ext`](https://extensionworkshop.com/documentation/develop/getting-started-with-web-ext/) CLI, run `web-ext run` to launch a dev browser with the extension loaded, or `web-ext build` to package a `.zip` for signing.
+
+### From source (Chrome — for development)
+
+The `chrome-mv3-port` branch contains a Manifest V3 build for Chrome:
+
+1. Clone the repository and check out the `chrome-mv3-port` branch.
+2. Open Chrome and go to `chrome://extensions`.
+3. Enable **Developer mode** (top-right toggle).
+4. Click **Load unpacked** and select the project folder.
+
+Reload the extension from the same page after editing any source file.
 
 ## Usage
 
@@ -58,14 +67,28 @@ Note: only one shape is shown at a time — picking a tool again clears the prev
 
 ## Development
 
-No build step or dependencies — the source files are the extension. Edit the files and click **Reload** on the `about:debugging` page to pick up changes.
+The extension source files are the shipped artifact — no build step is needed. Edit and reload.
 
-- `manifest.json` — extension manifest (Manifest V2).
+- `manifest.json` — extension manifest (MV2 on `master` / Firefox; MV3 on `chrome-mv3-port`).
 - `data/panel.html` + `data/menu.css` + `data/submit.js` — the toolbar popup and its controller.
 - `content-scripts/content.js` — injected into the active tab; builds and manages the drawing overlay.
 - `data/style.css` — styles injected into the target page for the drawn shapes.
 
 Architecture notes, the messaging protocol between the popup and the content script, and the drawing/drag lifecycle are documented in [`CLAUDE.md`](CLAUDE.md).
+
+### Testing (Chrome MV3 branch)
+
+The `chrome-mv3-port` branch has an automated E2E test suite powered by [Vitest](https://vitest.dev) and [Playwright](https://playwright.dev).
+
+```bash
+npm install
+npm test              # unit + E2E (all tests)
+npm run test:unit     # manifest assertions only (fast, no browser)
+npm run test:e2e      # full E2E in real Chromium
+npm run package       # produce dist/fibotin.zip for Web Store submission
+```
+
+CI runs automatically on every push via GitHub Actions (`.github/workflows/test.yml`).
 
 ## Known limitations
 

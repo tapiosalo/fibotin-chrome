@@ -8,15 +8,32 @@ Fibotin is a Mozilla Firefox WebExtension (Manifest V2) that overlays technical-
 
 It is a **published, live extension** on Firefox Add-ons: https://addons.mozilla.org/en-US/firefox/addon/fibotin/. Shipping an update means bumping `version` in `manifest.json` and submitting the package to AMO for review/signing, so changes affect real users.
 
+## Branch context
+
+- **`master`** — Firefox build (Manifest V2, `browser.*` API, `browser_action`). The published version on [addons.mozilla.org](https://addons.mozilla.org/en-US/firefox/addon/fibotin/).
+- **`chrome-mv3-port`** — Chrome build (Manifest V3, `chrome.*` API, `chrome.scripting.*`, `action`). Has a full automated test suite. This is what this CLAUDE.md describes.
+
 ## Loading and testing
 
-There is no package manager or build tooling. Load the unpacked extension directly:
+**Firefox (master):** `about:debugging#/runtime/this-firefox` → **Load Temporary Add-on** → select `manifest.json`.
 
-- Firefox → `about:debugging#/runtime/this-firefox` → **Load Temporary Add-on** → select `manifest.json`.
-- Reload after edits with the **Reload** button on that page (or restart if the popup/manifest changed).
-- Debug the **popup** (submit.js) via its own devtools; debug the **content script** (content.js) via the page's devtools console — both log liberally with `console.log`.
+**Chrome (chrome-mv3-port):** `chrome://extensions` → enable **Developer mode** → **Load unpacked** → select the project folder.
 
-Optional, if you have Mozilla's `web-ext` CLI installed globally (not configured in this repo): `web-ext run` to launch, `web-ext lint` to validate the manifest, `web-ext build` to package a `.zip`. Nothing in the repo depends on it.
+Debug the popup via its own devtools; debug the content script via the page devtools console (both log with `console.log`).
+
+### Automated tests (Chrome branch only)
+
+```bash
+npm install
+npm test              # unit + E2E
+npm run test:unit     # manifest assertions, no browser (fast)
+npm run test:e2e      # full Playwright E2E against real Chromium
+npm run package       # build dist/fibotin.zip for Web Store submission
+```
+
+CI: `.github/workflows/test.yml` — runs `xvfb-run -a npm test` on Ubuntu (extensions need a display).
+
+The test harness launches Chromium with the extension loaded via `--load-extension`. Because the real toolbar-click gesture is not automatable, the popup is opened directly as a page and `chrome.tabs.query` is stubbed to resolve to the fixture tab's ID. See `test/helpers/extension.js` for the full setup.
 
 ## Architecture (the important part)
 
@@ -51,8 +68,9 @@ Wrappers `#linebase` and `#channelbase` intentionally have no CSS rule — their
 
 ## Conventions and gotchas
 
-- **Manifest V2 / Firefox only.** Prefer the promise-based `browser.*` API with `.catch` (as `submit.js` uses) over `chrome.*` callbacks. Migrating to MV3 would require `browser_action`→`action`, `executeScript`/`insertCSS`→the `scripting` API, and an object-form `web_accessible_resources`.
-- Permissions are intentionally minimal: only `activeTab` (sufficient for `executeScript`/`insertCSS`/`sendMessage` on the current tab). `style.css` and `content.js` are loaded from the package by the extension, so they do **not** need `web_accessible_resources`.
+- **Chrome MV3 (this branch).** Use the promise-based `chrome.*` API throughout. Injection is via `chrome.scripting.executeScript/insertCSS/removeCSS({target:{tabId}, files:[...]})` — these require the `scripting` permission (declared in `manifest.json`) and an explicit tab ID resolved before the popup closes.
+- Permissions are intentionally minimal: `activeTab` + `scripting`. No host permissions in the shipped manifest. Tests add `host_permissions: http://localhost/*` and `tabs` via `buildTestExtension()` — the shipped manifest is never touched (a unit test enforces this).
+- **Background images in injected CSS resolve against the page origin, not the extension origin.** Chrome's `insertCSS` resolves relative `url()` paths against the host page — so `./red-dot.PNG` becomes `http://page-origin/red-dot.PNG`, which 404s. The fix (see `content.js` and spec §6): set `backgroundImage` inline using `chrome.runtime.getURL('data/red-dot.PNG')` when creating the `#retracement` element. The `web_accessible_resources` entry in `manifest.json` is still required for the `chrome-extension://` URL to be loadable by the page.
 - `style.css` is injected into arbitrary third-party pages — keep selectors id-scoped and z-index high to avoid clashing with host page styles.
 - `content.js` is indented with **tabs**; match the surrounding function's style when editing.
 

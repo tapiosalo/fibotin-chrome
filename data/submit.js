@@ -1,60 +1,49 @@
-function listenForClicks() {
-  document.addEventListener("click", (e) => {
-    console.log("listenForClicks: " + e.target.id);
+async function main() {
+  let tabId;
+  try {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    tabId = tab.id;
+    await chrome.scripting.executeScript({
+      target: { tabId },
+      files: ['content-scripts/content.js'],
+    });
+  } catch (error) {
+    console.error(`Failed to execute fibotin content script: ${error.message}`);
+    return;
+  }
+  listenForClicks(tabId);
+}
 
-    const TOOLS = ["retracement", "line", "arcs", "channel"];
+function listenForClicks(tabId) {
+  const TOOLS = ['retracement', 'line', 'arcs', 'channel'];
 
-    /**
-     * Just log the error to the console.
-     */
-    function reportError(error) {
-      console.error(`Fibotin fails: ${error}`);
-    }
+  function reportError(error) {
+    console.error(`Fibotin fails: ${error}`);
+  }
 
-    /**
-     * Insert the drawing CSS into the active tab, tell the content
-     * script which shape to draw, then close the popup.
-     */
-    function activateTool(command, tabs) {
-      browser.tabs.insertCSS(tabs[0].id, {file: '/data/style.css'})
-        .then(() => browser.tabs.sendMessage(tabs[0].id, {command: command}))
-        .then(() => window.close())
-        .catch(reportError);
+  async function activateTool(command) {
+    try {
+      await chrome.scripting.insertCSS({ target: { tabId }, files: ['data/style.css'] });
+      await chrome.tabs.sendMessage(tabId, { command });
+      window.close();
+    } catch (error) {
+      reportError(error);
     }
+  }
 
-    /**
-     * Remove the drawing CSS from the active tab,
-     * then send a "reset" message to the content script.
-     */
-    function reset(tabs) {
-      browser.tabs.removeCSS(tabs[0].id, {file: '/data/style.css'})
-        .catch(reportError);
-      browser.tabs.sendMessage(tabs[0].id, {command: "reset"})
-        .catch(reportError);
+  async function reset() {
+    try {
+      await chrome.scripting.removeCSS({ target: { tabId }, files: ['data/style.css'] });
+      await chrome.tabs.sendMessage(tabId, { command: 'reset' });
+    } catch (error) {
+      reportError(error);
     }
+  }
 
-    if (TOOLS.indexOf(e.target.id) !== -1) {
-      browser.tabs.query({active: true, currentWindow: true})
-        .then((tabs) => activateTool(e.target.id, tabs))
-        .catch(reportError);
-    }
-    if (e.target.id === "reset") {
-      browser.tabs.query({active: true, currentWindow: true})
-        .then(reset)
-        .catch(reportError);
-    }
+  document.addEventListener('click', (e) => {
+    if (TOOLS.indexOf(e.target.id) !== -1) activateTool(e.target.id);
+    else if (e.target.id === 'reset') reset();
   });
 }
 
-/**
- * There was an error executing the script.
- * Display the popup's error message, and hide the normal UI.
- */
-function reportExecuteScriptError(error) {
-  console.error(`Failed to execute fibotin content script: ${error.message}`);
-}
-
-
-browser.tabs.executeScript({file: "/content-scripts/content.js"})
-.then(listenForClicks)
-.catch(reportExecuteScriptError);
+main();
