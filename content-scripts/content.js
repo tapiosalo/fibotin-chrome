@@ -8,7 +8,7 @@
     return;
   }
   window.hasRun = true;
-  drawObj = new Object();
+  var drawObj = new Object();
   var drawSelection = null;
   var baseElement = null;
 	var appIsOn = false;
@@ -62,7 +62,7 @@
 			var arcsthree = document.createElement('div');
 			arcsthree.setAttribute("id", "circle3");
 			var arcslineElement = document.createElement('div');
-			arcslineElement.setAttribute("id", "line");			
+			arcslineElement.setAttribute("id", "arcsline");			
 			circleBaseElement.appendChild(arcsone);
 			circleBaseElement.appendChild(arcstwo);
 			circleBaseElement.appendChild(arcsthree);
@@ -197,7 +197,8 @@
 
 	function dragStart(event) {
 		console.log("dragstart");
-		drawObj.element = document.getElementById(event.target.id);
+		drawObj.dragId = event.currentTarget.id;
+		drawObj.element = document.getElementById(drawObj.dragId);
 		drawObj.startPointX = event.clientX;
 		drawObj.startPointY = event.clientY;
 
@@ -205,7 +206,7 @@
 			drawObj.elStartLeft = parseInt(drawObj.element.style.left, 10);
 			drawObj.elStartTop = parseInt(drawObj.element.style.top, 10);
 			drawObj.elStartWidth = parseInt(drawObj.element.style.width, 10);
-			drawObj.elStartHeigth = parseInt(drawObj.element.style.heigth, 10);
+			drawObj.elStartHeight = parseInt(drawObj.element.style.height, 10);
 		}
 		if (event.target.id === "linecircle") {			
 			drawObj.elStartLeft = parseInt(drawObj.element.style.left, 10);
@@ -214,7 +215,7 @@
 			drawObj.lineStartLeft = parseInt(drawObj.line.style.left, 10);
 			drawObj.lineStartTop = parseInt(drawObj.line.style.top, 10);
 		}
-		if (event.target.id == "channelcircle") {
+		if (drawObj.dragId == "channelcircle") {
 			drawObj.elStartLeft = parseInt(drawObj.element.style.left, 10);
 			drawObj.elStartTop = parseInt(drawObj.element.style.top, 10);
 			drawObj.line = document.getElementById("channelLine");
@@ -227,28 +228,28 @@
 			drawObj.secondCircleLeft = parseInt(drawObj.secondCircle.style.left, 10);
 			drawObj.secondCircleTop = parseInt(drawObj.secondCircle.style.top, 10);
 		}
-		if (event.target.id == "secondChannelCircle") {
+		if (drawObj.dragId == "secondChannelCircle") {
 			drawObj.elStartTop = parseInt(drawObj.element.style.top, 10);
 			drawObj.line = document.getElementById("secondChannelline");
 			drawObj.lineStartTop = parseInt(drawObj.line.style.top, 10);
 		}
-		drawObj.element.addEventListener("mousemove", dragGo, true);
-		drawObj.element.addEventListener("mouseup", dragStop, true);
+		document.addEventListener("mousemove", dragGo, true);
+		document.addEventListener("mouseup", dragStop, true);
 	}
 
 	function dragGo(event) {
 
-		console.log("target:"+event.target.id);
+		console.log("target:"+drawObj.dragId);
 		var newPosX = event.clientX;
 		var newPosY = event.clientY;
 		//event.preventDefault();
-		if (event.target.id == "retracement") {
+		if (drawObj.dragId == "retracement") {
 			drawObj.element.style.left = (drawObj.elStartLeft + newPosX - drawObj.startPointX) + "px";
 			drawObj.element.style.top = (drawObj.elStartTop + newPosY - drawObj.startPointY) + "px";
 			drawObj.element.style.width = drawObj.elStartWidth + "px";
-			drawObj.element.style.heigth = drawObj.elStartHeigth + "px";
+			drawObj.element.style.height = drawObj.elStartHeight + "px";
 		}
-		if (event.target.id == "linecircle") {
+		if (drawObj.dragId == "linecircle") {
 			//this moves circle
 			drawObj.element.style.left = (drawObj.elStartLeft + newPosX - drawObj.startPointX) + "px";
 			drawObj.element.style.top = (drawObj.elStartTop + newPosY - drawObj.startPointY) + "px";
@@ -260,7 +261,7 @@
 			drawObj.line.style.transform = transform;
 			drawObj.line.style.width = length + "px";					
 		}
-		if (event.target.id == "channelcircle") {
+		if (drawObj.dragId == "channelcircle") {
 			//this moves the circles
 			drawObj.element.style.left = (drawObj.elStartLeft + newPosX - drawObj.startPointX) + "px";
 			drawObj.element.style.top = (drawObj.elStartTop + newPosY - drawObj.startPointY) + "px";
@@ -281,15 +282,15 @@
 			drawObj.secondline.style.transform = secondtransform;
 			drawObj.secondline.style.width = secondlength + "px";
 		}
-		if (event.target.id == "secondChannelCircle") {
+		if (drawObj.dragId == "secondChannelCircle") {
 			drawObj.element.style.top = (drawObj.elStartTop + newPosY - drawObj.startPointY) + "px";			
 			drawObj.line.style.top = (drawObj.lineStartTop + newPosY - drawObj.startPointY) + "px";
 		}
 	}
 	
 	function dragStop(event) {
-		drawObj.element.removeEventListener("mousemove", dragGo, true);
-		drawObj.element.removeEventListener("mouseup", dragStop, true);
+		document.removeEventListener("mousemove", dragGo, true);
+		document.removeEventListener("mouseup", dragStop, true);
 		//drawObj.element.removeEventListener("mousedown", dragStart, true);
 	}
 
@@ -305,13 +306,7 @@
 	}
 
 	function calculateCircleCenterX(currentPosX, startPosX, halflength) {
-    var centerX;
-    if (currentPosX > startPosX) {
-        centerX = (currentPosX - halflength);
-    } else {
-        centerX = (currentPosX - halflength);
-    }
-    return centerX;
+    return currentPosX - halflength;
 	}
 
 	function calculateCircleCenterY(currentPosY, startPosY, halflength) {

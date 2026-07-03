@@ -1,56 +1,8 @@
 function listenForClicks() {
   document.addEventListener("click", (e) => {
-    console.log("listenForClicks: "+e.target.id);
-    /**
-     * Insert the page-hiding CSS into the active tab,
-     * then get the beast URL and
-     * send a "beastify" message to the content script in the active tab.
-     */
-    function retracement(tabs) {
-      chrome.tabs.insertCSS(null, {file: '/data/style.css'}, function() {
-          window.close();
-          browser.tabs.sendMessage(tabs[0].id, {
-              command: "retracement"
-          });
-      });
-    }
+    console.log("listenForClicks: " + e.target.id);
 
-    function line(tabs) {
-      chrome.tabs.insertCSS(null, {file: '/data/style.css'}, function() {
-          window.close();
-          browser.tabs.sendMessage(tabs[0].id, {
-              command: "line"
-          });
-      });
-    }
-
-    function arcs(tabs) {
-      chrome.tabs.insertCSS(null, {file: '/data/style.css'}, function() {
-          window.close();
-          browser.tabs.sendMessage(tabs[0].id, {
-              command: "arcs"
-          });
-      });
-    }
-
-    function channel(tabs) {
-      chrome.tabs.insertCSS(null, {file: '/data/style.css'}, function() {
-          window.close();
-          browser.tabs.sendMessage(tabs[0].id, {
-              command: "channel"
-          });
-      });
-    }
-
-    /**
-     * Remove the page-hiding CSS from the active tab,
-     * send a "reset" message to the content script in the active tab.
-     */
-    function reset(tabs) {
-      browser.tabs.sendMessage(tabs[0].id, {
-          command: "reset"
-      });
-    }
+    const TOOLS = ["retracement", "line", "arcs", "channel"];
 
     /**
      * Just log the error to the console.
@@ -60,32 +12,35 @@ function listenForClicks() {
     }
 
     /**
-     * Get the active tab,
-     * then call "beastify()" or "reset()" as appropriate.
+     * Insert the drawing CSS into the active tab, tell the content
+     * script which shape to draw, then close the popup.
      */
-    if (e.target.id === "retracement" ) {
-      browser.tabs.query({active: true, currentWindow: true})
-        .then(retracement)
+    function activateTool(command, tabs) {
+      browser.tabs.insertCSS(tabs[0].id, {file: '/data/style.css'})
+        .then(() => browser.tabs.sendMessage(tabs[0].id, {command: command}))
+        .then(() => window.close())
         .catch(reportError);
     }
-    if (e.target.id === "reset" ) {
+
+    /**
+     * Remove the drawing CSS from the active tab,
+     * then send a "reset" message to the content script.
+     */
+    function reset(tabs) {
+      browser.tabs.removeCSS(tabs[0].id, {file: '/data/style.css'})
+        .catch(reportError);
+      browser.tabs.sendMessage(tabs[0].id, {command: "reset"})
+        .catch(reportError);
+    }
+
+    if (TOOLS.indexOf(e.target.id) !== -1) {
+      browser.tabs.query({active: true, currentWindow: true})
+        .then((tabs) => activateTool(e.target.id, tabs))
+        .catch(reportError);
+    }
+    if (e.target.id === "reset") {
       browser.tabs.query({active: true, currentWindow: true})
         .then(reset)
-        .catch(reportError);
-    }
-    if (e.target.id === "line" ) {
-      browser.tabs.query({active: true, currentWindow: true})
-        .then(line)
-        .catch(reportError);
-    }
-    if (e.target.id === "arcs" ) {
-      browser.tabs.query({active: true, currentWindow: true})
-        .then(arcs)
-        .catch(reportError);
-    }
-    if (e.target.id === "channel" ) {
-      browser.tabs.query({active: true, currentWindow: true})
-        .then(channel)
         .catch(reportError);
     }
   });
