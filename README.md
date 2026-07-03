@@ -82,6 +82,12 @@ CI runs automatically on every push via GitHub Actions (`.github/workflows/test.
 
 This project is a Chrome port of [Fibotin for Firefox](https://addons.mozilla.org/en-US/firefox/addon/fibotin/), which remains available on Firefox Add-ons. The core drawing engine is identical; only the extension API layer was updated to Manifest V3 and the `chrome.*` namespace.
 
+## Privacy Policy
+
+Fibotin does not collect, store, or transmit any user data. It does not use cookies, analytics, or tracking of any kind. It makes no network requests and does not communicate with any external server.
+
+The extension only activates on the tab the user explicitly opens it on, and all processing happens locally in the browser.
+
 ## License
 
 Released under the [MIT License](LICENSE).
