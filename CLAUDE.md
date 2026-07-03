@@ -4,20 +4,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-Fibotin is a Mozilla Firefox WebExtension (Manifest V2) that overlays technical-analysis drawing tools on top of any web page. From a toolbar popup the user picks a tool — **Fibonacci retracement**, **trend line**, **Fibonacci arcs**, or **parallel channel** — then draws it by dragging over the page. Drawn shapes can be repositioned by dragging their handles. There is no build step, no dependencies, and no test suite; the source files are the shipped artifact.
+Fibotin for Chrome is a **Manifest V3 Chrome extension** ported from the original [Fibotin Firefox add-on](https://addons.mozilla.org/en-US/firefox/addon/fibotin/). From a toolbar popup the user picks a tool — **Fibonacci retracement**, **trend line**, **Fibonacci arcs**, or **parallel channel** — then draws it by dragging over the page. Drawn shapes can be repositioned by dragging their handles.
 
-It is a **published, live extension** on Firefox Add-ons: https://addons.mozilla.org/en-US/firefox/addon/fibotin/. Shipping an update means bumping `version` in `manifest.json` and submitting the package to AMO for review/signing, so changes affect real users.
+The core drawing engine (`content-scripts/content.js`) is the same as in the Firefox original. What changed in the port: the manifest was updated to MV3, the popup controller (`data/submit.js`) was rewritten to use `chrome.scripting.*`, and the retracement background images are now set via `chrome.runtime.getURL()` rather than relative CSS `url()` references (see Conventions below). An automated E2E test suite was added as part of the port.
 
-## Branch context
-
-- **`master`** — Firefox build (Manifest V2, `browser.*` API, `browser_action`). The published version on [addons.mozilla.org](https://addons.mozilla.org/en-US/firefox/addon/fibotin/).
-- **`chrome-mv3-port`** — Chrome build (Manifest V3, `chrome.*` API, `chrome.scripting.*`, `action`). Has a full automated test suite. This is what this CLAUDE.md describes.
+The Firefox original is a **published, live extension** on AMO. This Chrome version is pending Web Store submission. Shipping a Chrome update means bumping `version` in `manifest.json`, running `npm run package`, and uploading `dist/fibotin.zip` to the Chrome Web Store developer dashboard.
 
 ## Loading and testing
 
-**Firefox (master):** `about:debugging#/runtime/this-firefox` → **Load Temporary Add-on** → select `manifest.json`.
-
-**Chrome (chrome-mv3-port):** `chrome://extensions` → enable **Developer mode** → **Load unpacked** → select the project folder.
+**Chrome:** `chrome://extensions` → enable **Developer mode** → **Load unpacked** → select the project folder.
 
 Debug the popup via its own devtools; debug the content script via the page devtools console (both log with `console.log`).
 
@@ -42,9 +37,9 @@ The extension runs in **two contexts that talk over the messaging API** — unde
 1. **Popup** — `data/panel.html` loads `data/menu.css` (styles the menu) and `data/submit.js` (the controller). Each menu item is an `<a>` whose `id` is the command name.
 2. **Content script** — `content-scripts/content.js`, injected into the active tab, builds the drawing overlay. It is styled by `data/style.css`, which is injected **into the target page** via `tabs.insertCSS`.
 
-**Injection is programmatic, not declarative.** There is no `content_scripts` block and no background script in `manifest.json`. Instead, every time the popup opens, `submit.js` runs `browser.tabs.executeScript({file: "/content-scripts/content.js"})`, then wires up its click handler in the `.then()`. `content.js` guards against repeat injection with a `window.hasRun` flag. Consequence: on privileged pages (`about:`, `addons.mozilla.org`, `view-source:`) injection fails and the popup's buttons silently do nothing.
+**Injection is programmatic, not declarative.** There is no `content_scripts` block and no background script in `manifest.json`. Instead, every time the popup opens, `submit.js` resolves the active tab ID then calls `chrome.scripting.executeScript({target:{tabId}, files:[...]})`. `content.js` guards against repeat injection with a `window.hasRun` flag. Consequence: on privileged pages (`chrome://`, the Web Store, other extensions' pages) injection fails and the popup's buttons silently do nothing.
 
-**Message protocol** — popup → content script via `browser.tabs.sendMessage({command})`, received by the single `browser.runtime.onMessage` listener at the bottom of `content.js`. Commands: `"retracement"`, `"line"`, `"arcs"`, `"channel"`, and `"reset"` (any unrecognized command is treated as reset). On a tool command `submit.js` does: `insertCSS(style.css)` → `sendMessage` → `window.close()`; on reset it does `removeCSS(style.css)` → `sendMessage`.
+**Message protocol** — popup → content script via `chrome.tabs.sendMessage(tabId, {command})`, received by the single `chrome.runtime.onMessage` listener at the bottom of `content.js`. Commands: `"retracement"`, `"line"`, `"arcs"`, `"channel"`, and `"reset"` (any unrecognized command is treated as reset). On a tool command `submit.js` does: `chrome.scripting.insertCSS` → `sendMessage` → `window.close()`; on reset it does `chrome.scripting.removeCSS` → `sendMessage`.
 
 **The overlay and its lifecycle** — `init()` creates `#base`, a full-viewport `position:fixed` div at `z-index:900000`, appended to `document.body`. While a tool is active `#base` captures all mouse events, so the underlying page is not clickable. `close()` removes `#base` and resets state. `close()` runs on **every** tool (re)selection before re-init, so **only one shape can exist on screen at a time** — re-picking a tool erases the previous drawing.
 
