@@ -26,7 +26,7 @@ Works on top of any regular web page; no account, network access, or data collec
 
 ### Chrome Web Store
 
-*(Pending review — link will appear here once published.)*
+Install from the [Chrome Web Store](https://chromewebstore.google.com/detail/fibotin/hcehgkeaeecinllionmpkelhaapcobnd).
 
 ### Load unpacked (for development)
 

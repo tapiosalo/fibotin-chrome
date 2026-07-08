@@ -8,7 +8,7 @@ Fibotin for Chrome is a **Manifest V3 Chrome extension** ported from the origina
 
 The core drawing engine (`content-scripts/content.js`) is the same as in the Firefox original. What changed in the port: the manifest was updated to MV3, the popup controller (`data/submit.js`) was rewritten to use `chrome.scripting.*`, and the retracement background images are now set via `chrome.runtime.getURL()` rather than relative CSS `url()` references (see Conventions below). An automated E2E test suite was added as part of the port.
 
-The Firefox original is a **published, live extension** on AMO. This Chrome version is pending Web Store submission. Shipping a Chrome update means bumping `version` in `manifest.json`, running `npm run package`, and uploading `dist/fibotin.zip` to the Chrome Web Store developer dashboard.
+The Firefox original is a **published, live extension** on AMO. This Chrome version is also **published, live** on the [Chrome Web Store](https://chromewebstore.google.com/detail/fibotin/hcehgkeaeecinllionmpkelhaapcobnd). Shipping a Chrome update means bumping `version` in `manifest.json`, running `npm run package`, and uploading `dist/fibotin.zip` to the Chrome Web Store developer dashboard.
 
 ## Loading and testing
 
